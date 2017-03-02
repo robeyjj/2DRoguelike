@@ -48,7 +48,7 @@ public class DungeonManager : MonoBehaviour {
 	public Vector2 endPos;
 
 	public void StartDungeon () {
-		//Random.seed = 1;
+		Random.seed = 1;
 		gridPositions.Clear ();
 		maxBound = Random.Range (50, 101);
 
