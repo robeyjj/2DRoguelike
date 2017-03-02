@@ -8,7 +8,7 @@ public abstract class MovingObject : MonoBehaviour
 	public LayerMask blockingLayer;			//Layer on which collision will be checked.
 	
 	
-	private BoxCollider2D boxCollider; 		//The BoxCollider2D component attached to this object.
+	public BoxCollider2D boxCollider; 		//The BoxCollider2D component attached to this object.
 	private Rigidbody2D rb2D;				//The Rigidbody2D component attached to this object.
 	private float inverseMoveTime;			//Used to make movement more efficient.
 	
@@ -83,6 +83,7 @@ public abstract class MovingObject : MonoBehaviour
 			//Return and loop until sqrRemainingDistance is close enough to zero to end the function
 			yield return null;
 		}
+		transform.position = new Vector2 (Mathf.Round(transform.position.x), Mathf.Round(transform.position.y));
 	}
 	
 	
@@ -91,12 +92,19 @@ public abstract class MovingObject : MonoBehaviour
 	protected virtual bool AttemptMove <T> (int xDir, int yDir)
 		where T : Component
 	{
+		//Chapter 6 - adding direction changes
+		if (xDir == 1) {
+			transform.eulerAngles = Vector3.zero;
+		} else if (xDir == -1) {
+			transform.eulerAngles = new Vector3(0,180,0);
+		}
+
 		//Hit will store whatever our linecast hits when Move is called.
 		RaycastHit2D hit;
 		
 		//Set canMove to true if Move was successful, false if failed.
 		bool canMove = Move (xDir, yDir, out hit);
-		
+
 		//Check if nothing was hit by linecast
 		if(hit.transform == null)
 			//If nothing was hit, return and don't execute further code.
@@ -104,13 +112,12 @@ public abstract class MovingObject : MonoBehaviour
 		
 		//Get a component reference to the component of type T attached to the object that was hit
 		T hitComponent = hit.transform.GetComponent <T> ();
-		
+
 		//If canMove is false and hitComponent is not equal to null, meaning MovingObject is blocked and has hit something it can interact with.
 		if(!canMove && hitComponent != null)
 			
 			//Call the OnCantMove function and pass it hitComponent as a parameter.
 			OnCantMove (hitComponent);
-
 		return false;
 	}
 	
