@@ -5,63 +5,83 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-	public float turnDelay = 0.1f;
-	public int healthPoints = 100;
-	public static GameManager instance = null;
-	[HideInInspector] public bool playersTurn = true;
+    public float turnDelay = 0.1f;                          //Delay between each Player turn.
+    public int healthPoints = 100;                          //Starting value for Player health points.
+    public static GameManager instance = null;              //Static instance of GameManager which allows it to be accessed by any other script.
+    [HideInInspector] public bool playersTurn = true;        //Boolean to check if it's players turn, hidden in inspector but public.
 
-	// Chapter 7 - make the enemies faster - adaptive difficulty
-	public bool enemiesFaster = false;
+    // Chapter 7 - make the enemies faster - adaptive difficulty
+    public bool enemiesFaster = false;
 	public bool enemiesSmarter = false;
-	public int enemySpawnRatio = 20; // represented as 1/enemySpawnRatio ie. 1/20
-	
-	private BoardManager boardScript;
+	public int enemySpawnRatio = 20;                        // represented as 1/enemySpawnRatio ie. 1/20
 
-	private DungeonManager dungeonScript;
+    //CHAPTER 3
+    private BoardManager boardScript;                       //Store a reference to our BoardManager which will set up the level.
+    private DungeonManager dungeonScript;
 	private Player playerScript;
-	private List<Enemy> enemies;
-	private bool enemiesMoving;
+    private List<Enemy> enemies;                            //List of all Enemy units, used to issue them move commands.
+    private bool enemiesMoving;                             //Boolean to check if enemies are moving.
 
-	// Chapter 7 - adding a flag to determine if the player is in the dungeon
-	private bool playerInDungeon;
-	
-	void Awake() {
-		if (instance == null)
-			instance = this;
-		else if (instance != this)
-			Destroy(gameObject);	
+    // Chapter 7 - adding a flag to determine if the player is in the dungeon
+    private bool playerInDungeon;
 
-		DontDestroyOnLoad(gameObject);
+    //Awake is always called before any Start functions
+    void Awake() {
+        //Check if instance already exists
+        if (instance == null)
+            //if not, set instance to this
+            instance = this;
+        //If instance already exists and it's not this:
+        else if (instance != this)
+            //Then destroy this. This enforces our singleton pattern, meaning there can only ever be one instance of a GameManager.
+            Destroy(gameObject);
 
-		enemies = new List<Enemy>();
+        //Sets this to not be destroyed when reloading scene
+        DontDestroyOnLoad(gameObject);
+
+        //Assign enemies to a new List of Enemy objects.
+        enemies = new List<Enemy>();
 		enemiesFaster = false;
 		enemiesSmarter = false;
 
-		boardScript = GetComponent<BoardManager> ();
+        //CHAPTER 3
+        //Get a component reference to the attached BoardManager script
+        boardScript = GetComponent<BoardManager> ();
 
 		dungeonScript = GetComponent<DungeonManager> ();
 		playerScript = GameObject.FindGameObjectWithTag ("Player").GetComponent<Player> ();
 
-		InitGame();
+        //Call the InitGame function to initialize the first level 
+        InitGame();
 	}
 
-	void OnLevelWasLoaded(int index) {
-		InitGame();
+    //This is called each time a scene is loaded.
+    void OnLevelWasLoaded(int index) {
+        //Call InitGame to initialize our level.
+        InitGame();
 	}
 
-	void InitGame() {
-		enemies.Clear();
-
-		boardScript.BoardSetup();
-		// Chapter 7 - initialize the player ouside of a dungeon
+    //Initializes the game for each level.
+    void InitGame() {
+        //Clear any Enemy objects in our List to prepare for next level.
+        enemies.Clear();
+        
+        //Call the SetupScene function of the BoardManager script, pass it current level number.
+        boardScript.BoardSetup();
+		
+        // Chapter 7 - initialize the player ouside of a dungeon
 		playerInDungeon = false;
 	}
 
-	void Update() {
-		if(playersTurn || enemiesMoving)
-			return;
+    //Update is called every frame.
+    void Update() {
+        //Check that playersTurn or enemiesMoving or doingSetup are not currently true.
+        if (playersTurn || enemiesMoving)
+            //If any of these are true, return and do not start MoveEnemies.
+            return;
 
-		StartCoroutine (MoveEnemies ());
+        //Start moving enemies.
+        StartCoroutine(MoveEnemies ());
 	}
 
 	// CHAPTER 8 - ADDED MUSIC TO ENEMY ENCOUNTERS
